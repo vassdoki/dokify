@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Alert, FlatList, ActivityIndicator } from 'reac
 import SearchBar from './SearchBar';
 import Api from './Api'
 import TrackItem from './TrackItem'
+import {Audio} from 'expo';
 
 export default class App extends React.Component {
     constructor(props) {
@@ -12,7 +13,8 @@ export default class App extends React.Component {
             offset: 0,
             limit: 10,
             text: ""
-        }
+        };
+        this.soundObject = new Audio.Sound();
     }
     async searchNext() {
         const token = await Api.getToken();
@@ -32,6 +34,23 @@ export default class App extends React.Component {
             this.searchNext(text);
         });
     }
+    async playAudio(item) {
+        if (item.preview_url) {
+            try {
+                await this.soundObject.stopAsync();
+                await this.soundObject.unloadAsync();
+            } catch(e) {
+            }
+            try {
+                await this.soundObject.loadAsync({uri:item.preview_url});
+                await this.soundObject.playAsync();
+            } catch(e) {
+                Alert.alert("Opps!", e);
+            }
+        } else {
+            Alert.alert("Opps!", "No preview available")
+        }
+    }
     render() {
         const { tracks, text } = this.state;
         return (
@@ -45,7 +64,7 @@ export default class App extends React.Component {
                             this.searchNext()
                         }
                     }}
-                    renderItem={({item}) => <TrackItem item={item}/> }
+                    renderItem={({item}) => <TrackItem item={item} onPress={this.playAudio.bind(this)}/> }
                     ListEmptyComponent={
                         !text
                             ? <Text>Használd a keresést!</Text>

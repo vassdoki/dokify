@@ -5,7 +5,7 @@ class TrackItem extends React.Component {
     render() {
         const { item } = this.props;
         return (
-            <TouchableOpacity style={styles.item}>
+            <TouchableOpacity style={styles.item} onPress={this.props.onPress.bind(this, item)}>
                 <Image
                     style={styles.image}
                     source={{uri: item.album.images[0].url}}/>
