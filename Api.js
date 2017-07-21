@@ -19,9 +19,37 @@ export default {
               return json.access_token;
             } catch(e) {
                 console.log(e);
-                throw "could not parse response json " + e;
+                throw "could not parse auth response json " + e;
             }
         }
         throw 'token request was not ok';
+    },
+    async search({token, q, limit = 10, offset = 0}) {
+        const res = await fetch(`https://api.spotify.com/v1/search?q=${q}&limit=${limit}&offset=${offset}&type=track`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        });
+
+        if (res.ok) {
+            try {
+                const json = await res.json();
+                return json.tracks.items;
+            } catch(e) {
+                console.log(e);
+                throw "could not parse search response json " + e;
+            }
+        }
+
+        try{
+            const json = await res.json();
+            throw JSON.stringify(json);
+        } catch(e) {
+            throw 'count not parse search error json ' + e;
+        }
+
+        throw 'search request was not ok';
+
     }
-}
+};
