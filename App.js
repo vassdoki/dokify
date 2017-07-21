@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, Alert, Image, FlatList } from 'react-native';
 import SearchBar from './SearchBar';
 import Api from './Api'
 
@@ -7,17 +7,28 @@ export default class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tracks: []
+            tracks: [],
+            offset: 0,
+            limit: 10,
+            text: ""
         }
+    }
+    async searchNext() {
+        const token = await Api.getToken();
+        const {offset, limit, tracks, text} = this.state;
+        const newTracks = await Api.search({token, q:text, offset});
+        this.setState({
+            tracks: [...tracks, ...newTracks],
+            offset: offset + limit,
+        });
     }
     async handleSearch(text) {
         this.setState({
             tracks: [],
-        });
-        const token = await Api.getToken();
-        const tracks = await Api.search({token, q:text});
-        this.setState({
-            tracks,
+            offset: 0,
+            text,
+        }, () => {
+            this.searchNext(text);
         });
     }
     render() {
@@ -25,28 +36,32 @@ export default class App extends React.Component {
         return (
             <View style={styles.container}>
                 <SearchBar onSearch={this.handleSearch.bind(this)}/>
-                <View>
-                    {
-                        tracks.map(track => {
-                            console.log(track.album.images[0]);
-                            return <View>
-                                <Text key={track.name}>{track.name}</Text>
-                                <Image
-                                    style={{width: 50, height: 50}}
-                                    source={{uri:track.album.images[0].url}}/>
-                            </View>
-                        })
+                <FlatList
+                    data={tracks}
+                    keyExtractor={(item, index) => item.id}
+                    onEndReached={info => {
+                        if (tracks.length > 0) {
+                            this.searchNext()
+                        }
+                    }}
+                    renderItem={({item}) => <View style={styles.listRow}>
+                        <Image
+                            style={{width: 50, height: 50}}
+                            source={{uri:item.album.images[0].url}}/>
+                        <Text>{item.name}</Text>
+                    </View>
                     }
-                </View>
-                {/*<Text>Open up App.js to start working on your app!</Text>*/}
-                {/*<Text>Changes you make will automatically reload.</Text>*/}
-                {/*<Text>Shake your phone to open the developer menu.</Text>*/}
+                />
             </View>
         );
     }
 }
 
 const styles = StyleSheet.create({
+    listRow: {
+        flexDirection: 'row', // flexbox
+        borderWidth: 1,
+    },
     container: {
         flex: 1,
         backgroundColor: '#fff',
