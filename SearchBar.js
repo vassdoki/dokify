@@ -39,6 +39,8 @@ class SearchBar extends React.Component {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row', // flexbox
+        justifyContent: 'center',
+        marginBottom: 20,
     },
     input: {
         height: 30,

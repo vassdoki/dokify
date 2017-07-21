@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View, Alert, Image, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Alert, FlatList, ActivityIndicator } from 'react-native';
 import SearchBar from './SearchBar';
 import Api from './Api'
+import TrackItem from './TrackItem'
 
 export default class App extends React.Component {
     constructor(props) {
@@ -32,7 +33,7 @@ export default class App extends React.Component {
         });
     }
     render() {
-        const { tracks } = this.state;
+        const { tracks, text } = this.state;
         return (
             <View style={styles.container}>
                 <SearchBar onSearch={this.handleSearch.bind(this)}/>
@@ -44,13 +45,16 @@ export default class App extends React.Component {
                             this.searchNext()
                         }
                     }}
-                    renderItem={({item}) => <View style={styles.listRow}>
-                        <Image
-                            style={{width: 50, height: 50}}
-                            source={{uri:item.album.images[0].url}}/>
-                        <Text>{item.name}</Text>
-                    </View>
+                    renderItem={({item}) => <TrackItem item={item}/> }
+                    ListEmptyComponent={
+                        !text
+                            ? <Text>Használd a keresést!</Text>
+                            : <ActivityIndicator/>
                     }
+                    ItemSeparatorComponent={
+                        () => <View style={styles.separator}/>
+                    }
+                    // onRefresh={}
                 />
             </View>
         );
@@ -58,16 +62,12 @@ export default class App extends React.Component {
 }
 
 const styles = StyleSheet.create({
-    listRow: {
-        flexDirection: 'row', // flexbox
-        borderWidth: 1,
-    },
     container: {
-        flex: 1,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        margin: 20,
+        margin: 10,
         marginTop: 40,
     },
+    separator: {
+        height: 1,
+        backgroundColor: 'rgb(200,200,200)',
+    }
 });
